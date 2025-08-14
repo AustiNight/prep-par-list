@@ -1,0 +1,79 @@
+/* Stylesheet for Prep & Par static app */
+
+:root {
+  --bg: #0b1220;
+  --panel: #0f172a;
+  --muted: #94a3b8;
+  --text: #e2e8f0;
+  --accent: #22c55e;
+  --accent2: #38bdf8;
+  --danger: #ef4444;
+  --border: #1f2a44;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+}
+.brand { font-weight: 700; letter-spacing: 0.2px; }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.nav-btn {
+  background: transparent; color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; cursor: pointer;
+}
+.nav-btn:hover { border-color: var(--accent2); }
+
+.context {
+  display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border);
+  background: #0c1527;
+}
+.context label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); }
+.context input {
+  background: #101b33; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;
+}
+.primary, .secondary {
+  border-radius: 8px; padding: 8px 12px; cursor: pointer; border: 1px solid var(--border);
+}
+.primary { background: var(--accent); color: #05140a; border-color: #16a34a; font-weight: 700; }
+.secondary { background: #091427; color: var(--text); }
+
+.panel { margin: 16px; padding: 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.note { color: var(--muted); margin: 8px 0 12px; }
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.card { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #0c1527; }
+.stack { display: grid; gap: 8px; }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { border-bottom: 1px solid var(--border); padding: 8px; vertical-align: top; }
+.table th { color: var(--muted); text-align: left; }
+.table input, .table textarea, .table select {
+  width: 100%; background: #101b33; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px;
+}
+.table .danger { color: var(--danger); }
+
+.filelike {
+  display: inline-grid; gap: 6px; border: 1px dashed var(--border); padding: 8px 10px; border-radius: 8px;
+  cursor: pointer; color: var(--muted);
+}
+.filelike input { display: none; }
+
+.footer { color: var(--muted); text-align: center; padding: 24px; }
+
+@media (max-width: 900px) {
+  .grid-3 { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+}

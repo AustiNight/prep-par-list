@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Prep &amp; Par — Static App</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Tesseract.js for in-browser OCR (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js" defer></script>
+  <script src="app.js" type="module" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Prep &amp; Par</div>
+    <nav class="nav">
+      <button class="nav-btn" data-view="dashboard">Dashboard</button>
+      <button class="nav-btn" data-view="items">Items</button>
+      <button class="nav-btn" data-view="recipes">Recipes</button>
+      <button class="nav-btn" data-view="par">Par Templates</button>
+      <button class="nav-btn" data-view="modifiers">Modifiers</button>
+      <button class="nav-btn" data-view="export">Export Worksheet</button>
+      <button class="nav-btn" data-view="upload">Upload On‑Hand (CSV/OCR)</button>
+      <button class="nav-btn" data-view="generate">Generate Prep</button>
+      <button class="nav-btn" data-view="history">History</button>
+    </nav>
+  </header>
+
+  <section class="context">
+    <label>Date
+      <input type="date" id="ctx-date">
+    </label>
+    <label>Location
+      <input id="ctx-location" placeholder="e.g., Main Kitchen" list="known-locations">
+      <datalist id="known-locations"></datalist>
+    </label>
+    <label>Shift
+      <input id="ctx-shift" placeholder="e.g., Lunch, Dinner" list="known-shifts">
+      <datalist id="known-shifts"></datalist>
+    </label>
+    <button id="ctx-save" class="primary">Set Context</button>
+  </section>
+
+  <main id="view-root"><!-- views render here --></main>
+
+  <template id="tmpl-dashboard">
+    <div class="panel">
+      <h2>Dashboard</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Quick Actions</h3>
+          <div class="stack">
+            <button data-jump="par" class="secondary">Edit Par Template (ctx)</button>
+            <button data-jump="export" class="secondary">Export On‑Hand Worksheet (ctx)</button>
+            <button data-jump="upload" class="secondary">Upload On‑Hand (CSV/OCR)</button>
+            <button data-jump="generate" class="secondary">Generate Prep (ctx)</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Stats (Context)</h3>
+          <div id="dash-stats">—</div>
+        </div>
+        <div class="card">
+          <h3>Recent History</h3>
+          <div id="dash-history">—</div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tmpl-items">
+    <div class="panel">
+      <h2>Items</h2>
+      <div class="toolbar">
+        <button id="add-item" class="primary">Add Item</button>
+        <button id="export-items" class="secondary">Export Items JSON</button>
+        <label class="filelike">
+          Import Items JSON
+          <input type="file" id="import-items" accept="application/json">
+        </label>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Item ID</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Unit</th>
+            <th>Station</th>
+            <th>Locations</th>
+            <th>Default Batch Yield</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="items-rows"></tbody>
+      </table>
+    </div>
+  </template>
+
+  <template id="tmpl-recipes">
+    <div class="panel">
+      <h2>Recipes</h2>
+      <div class="toolbar">
+        <button id="add-recipe" class="primary">Add Recipe</button>
+        <button id="export-recipes" class="secondary">Export Recipes JSON</button>
+        <label class="filelike">
+          Import Recipes JSON
+          <input type="file" id="import-recipes" accept="application/json">
+        </label>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Item ID</th>
+            <th>Yield Amount</th>
+            <th>Yield Unit</th>
+            <th>Ingredients (amount unit name)</th>
+            <th>Instructions</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="recipes-rows"></tbody>
+      </table>
+    </div>
+  </template>
+
+  <template id="tmpl-par">
+    <div class="panel">
+      <h2>Par Templates</h2>
+      <div class="toolbar">
+        <button id="add-par-line" class="primary">Add Line</button>
+        <button id="save-par" class="secondary">Save Template (ctx)</button>
+        <button id="export-par" class="secondary">Export Par Templates JSON</button>
+        <label class="filelike">
+          Import Par Templates JSON
+          <input type="file" id="import-par" accept="application/json">
+        </label>
+      </div>
+      <div class="note">Template applies to current <strong>Location</strong> &amp; <strong>Shift</strong> in the context bar.</div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Station</th>
+            <th>Item ID</th>
+            <th>Item Name</th>
+            <th>Unit</th>
+            <th>Par Amount</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="par-rows"></tbody>
+      </table>
+    </div>
+  </template>
+
+  <template id="tmpl-modifiers">
+    <div class="panel">
+      <h2>Per‑Shift‑Per‑Day Modifiers</h2>
+      <div class="note">Percent modifiers by weekday for the selected <strong>Location</strong> &amp; <strong>Shift</strong>.</div>
+      <div class="toolbar">
+        <button id="save-modifiers" class="primary">Save Modifiers (ctx)</button>
+        <button id="export-modifiers" class="secondary">Export Modifiers JSON</button>
+        <label class="filelike">
+          Import Modifiers JSON
+          <input type="file" id="import-modifiers" accept="application/json">
+        </label>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Weekday</th>
+            <th>Percent (e.g., 20 for +20%)</th>
+          </tr>
+        </thead>
+        <tbody id="mod-rows"></tbody>
+      </table>
+    </div>
+  </template>
+
+  <template id="tmpl-export">
+    <div class="panel">
+      <h2>Export On‑Hand Worksheet</h2>
+      <p>This exports a CSV staff can fill out digitally, or you can print it (File → Print) for handwriting.</p>
+      <div class="toolbar">
+        <button id="export-onhand-csv" class="primary">Download CSV (ctx)</button>
+        <button id="print-worksheet" class="secondary">Print Worksheet (ctx)</button>
+      </div>
+      <div class="note">Columns: date, location, shift, station, item_id, item_name, unit, par, on_hand</div>
+      <div id="worksheet-preview"></div>
+    </div>
+  </template>
+
+  <template id="tmpl-upload">
+    <div class="panel">
+      <h2>Upload On‑Hand (CSV or OCR)</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>CSV Upload (preferred)</h3>
+          <label class="filelike">
+            Choose CSV
+            <input type="file" id="upload-csv" accept=".csv,text/csv">
+          </label>
+          <div id="csv-status">—</div>
+        </div>
+        <div class="card">
+          <h3>Photo/PDF OCR</h3>
+          <label class="filelike">
+            Choose Image/PDF
+            <input type="file" id="upload-ocr" accept="image/*,application/pdf">
+          </label>
+          <div id="ocr-status">—</div>
+          <div class="note">After OCR, you can fix low‑confidence cells before saving.</div>
+        </div>
+      </div>
+      <div id="upload-review"></div>
+    </div>
+  </template>
+
+  <template id="tmpl-generate">
+    <div class="panel">
+      <h2>Generate Prep List</h2>
+      <div class="toolbar">
+        <button id="calc-prep" class="primary">Calculate (ctx)</button>
+        <button id="export-prep-csv" class="secondary">Export Prep CSV</button>
+        <button id="finalize-prep" class="secondary">Finalize &amp; Save to History</button>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Station</th>
+            <th>Item</th>
+            <th>Unit</th>
+            <th>Par</th>
+            <th>Modifier %</th>
+            <th>Adj. Par</th>
+            <th>On‑Hand</th>
+            <th>Needed</th>
+            <th>Batch Yield</th>
+            <th>Suggested Prep</th>
+            <th>Assigned To</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="prep-rows"></tbody>
+      </table>
+    </div>
+  </template>
+
+  <template id="tmpl-history">
+    <div class="panel">
+      <h2>History</h2>
+      <div class="toolbar">
+        <button id="export-history" class="secondary">Export Full History JSON</button>
+        <label class="filelike">
+          Import History JSON
+          <input type="file" id="import-history" accept="application/json">
+        </label>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th><th>Location</th><th>Shift</th><th>Type</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="hist-rows"></tbody>
+      </table>
+    </div>
+  </template>
+
+  <footer class="footer">Offline‑ready • All data stays on this device unless you export it.</footer>
+</body>
+</html>
