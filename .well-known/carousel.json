@@ -1,0 +1,7 @@
+{
+  "title": "Prep & Par",
+  "description": "Kitchen prep management PWA with dashboard, recipes, par templates, modifiers, OCR upload, and prep worksheet generation.",
+  "tags": ["chef-toolkit", "pwa", "kitchen", "inventory"],
+  "projectKey": "prep-par-list",
+  "repoUrl": "https://github.com/AustiNight/prep-par-list"
+}
